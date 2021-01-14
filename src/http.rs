@@ -117,61 +117,78 @@ pub async fn get_company_list(query: &Query) -> Result<Vec<Company>, String> {
 #[cfg(test)]
 
 mod tests {
-    use crate::cache::{get_cache, save_cache, ResultOutput, get_cache_from_path, save_cache_with_path};
+    use crate::cache::{
+        get_cache, get_cache_from_path, save_cache, save_cache_with_path, ResultOutput,
+    };
+    use crate::json::{Company, Query};
     use log::info;
-    use crate::json::{Query, Company};
     use std::fs::File;
     use std::io::Write;
 
     fn add_company(data: &mut Vec<Company>, new: &Vec<Company>) {
-        for c  in new  {
-            if ! data.iter().any(|p| p.name == c.name) {
+        for c in new {
+            if !data.iter().any(|p| p.name == c.name) {
                 data.push(c.clone());
             }
         }
     }
 
     #[tokio::test]
-    async fn test_fetch_company()  {
+    async fn test_fetch_company() {
         crate::cache::init_cache();
 
-        let mut data : Vec<Company> = Vec::new();
-        let result = super::get_company_list(&Query::new_name("混凝土")).await.unwrap();
+        let mut data: Vec<Company> = Vec::new();
+        let result = super::get_company_list(&Query::new_name("混凝土"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("建设")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("建设"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("建材")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("建材"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("海宁")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("海宁"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("海盐")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("海盐"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("浙江")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("浙江"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("嘉善")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("嘉善"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("平湖")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("平湖"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = super::get_company_list(&Query::new_name("桐乡")).await.unwrap();
+        let result = super::get_company_list(&Query::new_name("桐乡"))
+            .await
+            .unwrap();
         add_company(&mut data, &result);
 
-        let result = ResultOutput{
-            company_list: data,
-        };
+        let result = ResultOutput { company_list: data };
 
         let mut output: File = File::create("config/output_3.json").unwrap();
         output
             .write_all(serde_json::to_string_pretty(&result).unwrap().as_bytes())
             .unwrap();
-
     }
 
     #[tokio::test]
@@ -179,13 +196,16 @@ mod tests {
         crate::cache::init_cache();
         let cache = get_cache();
 
-        let mut data:Vec<Company> = Vec::new();
+        let mut data: Vec<Company> = Vec::new();
 
-        let mut hui_list:Vec<String> = Vec::new();
+        let mut hui_list: Vec<String> = Vec::new();
 
-        for c in cache.company_list  {
+        for c in cache.company_list {
             if let Some(list) = c.qualification.clone() {
-                if list.iter().any(|p| p.zz_mark.contains("预拌混凝土专业承包不分等级")) {
+                if list
+                    .iter()
+                    .any(|p| p.zz_mark.contains("预拌混凝土专业承包不分等级"))
+                {
                     hui_list.push(c.name.clone());
                     data.push(c.clone());
                 }
@@ -194,10 +214,7 @@ mod tests {
 
         info!("hui = {:?}", hui_list);
 
-        save_cache_with_path(&ResultOutput{
-            company_list: data,
-        }, "config/hui.json");
-
+        save_cache_with_path(&ResultOutput { company_list: data }, "config/hui.json");
     }
 
     #[tokio::test]
@@ -209,7 +226,7 @@ mod tests {
         let mut list = cache.company_list.clone();
         let list2 = cache2.company_list.clone();
 
-        for p in list2  {
+        for p in list2 {
             if !list.iter().any(|q| q.name == p.name) {
                 info!("found new company {}", p.name.clone());
                 list.push(p);
@@ -219,7 +236,7 @@ mod tests {
         let mut i = 0;
         for mut c in &mut list {
             if c.qualification.is_none() {
-                i+=1;
+                i += 1;
                 info!("{},  fetch {:?} 资质", i, c.name.clone());
                 let res = super::get_company_qualification(&mut c).await;
 
@@ -229,8 +246,6 @@ mod tests {
             }
         }
 
-        save_cache(&ResultOutput {
-            company_list: list,
-        });
+        save_cache(&ResultOutput { company_list: list });
     }
 }
