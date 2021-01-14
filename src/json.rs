@@ -9,9 +9,10 @@ macro_rules! result_err {
     };
 }
 
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct Company {
+    #[serde(rename = "CorpName")]
+    pub name: String,
     #[serde(rename = "Legalmanname")]
     pub legal_man_name: Option<String>,
     #[serde(rename = "OpinionDateTime")]
@@ -19,21 +20,13 @@ pub struct Company {
     #[serde(rename = "EndDate")]
     pub end_date: String,
     #[serde(rename = "City")]
-    pub city : String,
+    pub city: String,
     #[serde(rename = "CorpCode")]
     pub corp_code: String,
     #[serde(rename = "SCUCode")]
     pub scu_code: Option<String>,
-    #[serde(rename = "CorpName")]
-    pub name: String,
 
-    pub qualification: Option<Vec<Qualification>>
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ResultOutput {
-    pub company_list: Vec<Company>,
-    pub hun_nin_tu: Vec<String>,
+    pub qualification: Option<Vec<Qualification>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,7 +41,7 @@ pub struct Msg {
     pub obj: Vec<Company>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq)]
 pub struct Qualification {
     #[serde(rename = "APTITUDEKINDNAME")]
     pub aptitude_kind_name: String,
@@ -60,7 +53,7 @@ pub struct Qualification {
     pub organ_date: String,
     #[serde(rename = "EndDate")]
     pub end_date: String,
-    #[serde(rename = "TechMan")]
+    #[serde(rename = "TechMan", skip_serializing_if = "Option::is_none")]
     pub tech_man: Option<String>,
 }
 
@@ -86,6 +79,13 @@ pub struct Query {
     pub page_index: u32,
     #[serde(rename = "pageSize")]
     pub page_size: u32,
+    #[serde(rename = "corpName")]
+    pub corp_name: String,
+    #[serde(rename = "CertID")]
+    pub cert_id: String,
+    #[serde(rename = "EndDate")]
+    pub end_date: String,
+
 }
 
 impl Default for Query {
@@ -95,10 +95,21 @@ impl Default for Query {
             city: "嘉兴市".to_string(),
             page_index: 1,
             page_size: 1000,
+            corp_name: "".to_string(),
+            cert_id: "".to_string(),
+            end_date: "".to_string()
         }
     }
 }
 
+impl Query {
+    pub fn new_name(name: &str) ->Self {
+        let mut d = Query::default();
+        d.corp_name = name.to_string();
+        d
+    }
+
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Query2 {
